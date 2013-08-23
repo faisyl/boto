@@ -41,6 +41,8 @@ def regions():
     """
     return [RDSRegionInfo(name='us-east-1',
                           endpoint='rds.amazonaws.com'),
+            RDSRegionInfo(name='us-gov-west-1',
+                          endpoint='rds.us-gov-west-1.amazonaws.com'),
             RDSRegionInfo(name='eu-west-1',
                           endpoint='rds.eu-west-1.amazonaws.com'),
             RDSRegionInfo(name='us-west-1',
@@ -165,6 +167,7 @@ class RDSConnection(AWSQueryConnection):
                           license_model = None,
                           option_group_name = None,
                           iops=None,
+                          vpc_security_groups=None,
                           ):
         # API version: 2012-09-17
         # Parameter notes:
@@ -363,6 +366,10 @@ class RDSConnection(AWSQueryConnection):
                       If you specify a value, it must be at least 1000 IOPS and you must
                       allocate 100 GB of storage.
 
+        :type vpc_security_groups: list of str or list of SecurityGroups
+        :param vpc_security_groups: List of ids or SecurityGroups to
+            authorize on this DBInstance.
+
         :rtype: :class:`boto.rds.dbinstance.DBInstance`
         :return: The new db instance.
         """
@@ -390,6 +397,11 @@ class RDSConnection(AWSQueryConnection):
         # port => Port
         # preferred_backup_window => PreferredBackupWindow
         # preferred_maintenance_window => PreferredMaintenanceWindow
+
+        # Importing here rather than at the top of the file to prevent
+        # circular imports.
+        from boto.ec2.securitygroup import SecurityGroup
+
         params = {
                   'AllocatedStorage': allocated_storage,
                   'AutoMinorVersionUpgrade': str(auto_minor_version_upgrade).lower() if auto_minor_version_upgrade else None,
@@ -423,6 +435,15 @@ class RDSConnection(AWSQueryConnection):
                 else:
                     l.append(group)
             self.build_list_params(params, l, 'DBSecurityGroups.member')
+
+        if vpc_security_groups:
+            l = []
+            for group in vpc_security_groups:
+                if isinstance(group, SecurityGroup):
+                    l.append(group.name)
+                else:
+                    l.append(group)
+            self.build_list_params(params, l, 'VpcSecurityGroupIds.member')
 
         # Remove any params set to None
         for k, v in params.items():
@@ -507,7 +528,8 @@ class RDSConnection(AWSQueryConnection):
                           preferred_backup_window=None,
                           multi_az=False,
                           apply_immediately=False,
-                          iops=None):
+                          iops=None,
+                          vpc_security_groups=None):
         """
         Modify an existing DBInstance.
 
@@ -583,9 +605,17 @@ class RDSConnection(AWSQueryConnection):
                       If you specify a value, it must be at least 1000 IOPS and you must
                       allocate 100 GB of storage.
 
+        :type vpc_security_groups: list of str or list of SecurityGroups
+        :param vpc_security_groups: List of ids or SecurityGroups to
+            authorize on this DBInstance.
+
         :rtype: :class:`boto.rds.dbinstance.DBInstance`
         :return: The modified db instance.
         """
+        # Importing here rather than at the top of the file to prevent
+        # circular imports.
+        from boto.ec2.securitygroup import SecurityGroup
+
         params = {'DBInstanceIdentifier': id}
         if param_group:
             params['DBParameterGroupName'] = (param_group.name
@@ -599,6 +629,14 @@ class RDSConnection(AWSQueryConnection):
                 else:
                     l.append(group)
             self.build_list_params(params, l, 'DBSecurityGroups.member')
+        if vpc_security_groups:
+            l = []
+            for group in vpc_security_groups:
+                if isinstance(group, SecurityGroup):
+                    l.append(group.name)
+                else:
+                    l.append(group)
+            self.build_list_params(params, l, 'VpcSecurityGroupIds.member')
         if preferred_maintenance_window:
             params['PreferredMaintenanceWindow'] = preferred_maintenance_window
         if master_password:
@@ -1094,7 +1132,8 @@ class RDSConnection(AWSQueryConnection):
                                               restore_time=None,
                                               dbinstance_class=None,
                                               port=None,
-                                              availability_zone=None):
+                                              availability_zone=None,
+                                              db_subnet_group_name=None):
 
         """
         Create a new DBInstance from a point in time.
@@ -1127,6 +1166,11 @@ class RDSConnection(AWSQueryConnection):
         :param availability_zone: Name of the availability zone to place
                                   DBInstance into.
 
+        :type db_subnet_group_name: str
+        :param db_subnet_group_name: A DB Subnet Group to associate with this DB Instance.
+                                     If there is no DB Subnet Group, then it is a non-VPC DB
+                                     instance.
+
         :rtype: :class:`boto.rds.dbinstance.DBInstance`
         :return: The newly created DBInstance
         """
@@ -1142,6 +1186,8 @@ class RDSConnection(AWSQueryConnection):
             params['Port'] = port
         if availability_zone:
             params['AvailabilityZone'] = availability_zone
+        if db_subnet_group_name is not None:
+            params['DBSubnetGroupName'] = db_subnet_group_name
         return self.get_object('RestoreDBInstanceToPointInTime',
                                params, DBInstance)
 
