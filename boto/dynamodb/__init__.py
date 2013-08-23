@@ -75,7 +75,7 @@ def connect_to_region(region_name, **kw_params):
         awskey = kwargs.get('aws_access_key', 'UNKNOWN')
         awssecret = kwargs.get('aws_secret_access_key', 'UNKNOWN')
 
-        token = AuthToken(awskey, awssecret 'dummy')
+        token = AuthToken(awskey, awssecret, 'dummy')
         r = RegionInfo(name=region, endpoint='%s:%d' % (host, port), connection_cls=layer2.Layer2)
         l = r.connect(aws_access_key_id=awskey, aws_secret_access_key=awssecret,
                 is_secure=False, port=port, session_token=token)
