@@ -52,8 +52,28 @@ def regions():
                        connection_cls=boto.dynamodb.layer2.Layer2),
             ]
 
+class AuthToken:
+    def __init__(self, access_key, secret_key, session_token):
+        self.access_key = access_key
+        self.secret_key = secret_key
+        self.session_token = session_token
 
 def connect_to_region(region_name, **kw_params):
+    if ':' in region_name:
+        rlist = region_name.split(':')
+        host = rlist[1]
+        if len(rlist) > 2:
+            port = rlist[2]
+        else:
+            port = 4567
+        awskey = kwargs.get('aws_access_key', 'UNKNOWN')
+        awssecret = kwargs.get('aws_secret_access_key', 'UNKNOWN')
+
+        token = AuthToken(awskey, awssecret, 'dummy')
+        r = RegionInfo(name=region_name, endpoint='%s:%d' % (host, port), connection_cls=layer2.Layer2)
+        l = r.connect(aws_access_key_id=awskey, aws_secret_access_key=awssecret,
+                is_secure=False, port=port, session_token=token)
+        return l
     for region in regions():
         if region.name == region_name:
             return region.connect(**kw_params)
