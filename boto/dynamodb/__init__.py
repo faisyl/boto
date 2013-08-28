@@ -72,11 +72,11 @@ def connect_to_region(region_name, **kw_params):
         rlist = region_name.split(':')
         host = rlist[1]
         if len(rlist) > 2:
-            port = rlist[2]
+            port = int(rlist[2])
         else:
             port = 4567
-        awskey = kwargs.get('aws_access_key', 'UNKNOWN')
-        awssecret = kwargs.get('aws_secret_access_key', 'UNKNOWN')
+        awskey = kw_params.get('aws_access_key', 'UNKNOWN')
+        awssecret = kw_params.get('aws_secret_access_key', 'UNKNOWN')
 
         token = AuthToken(awskey, awssecret, 'dummy')
         r = RegionInfo(name=region_name, endpoint='%s:%d' % (host, port), connection_cls=layer2.Layer2)
