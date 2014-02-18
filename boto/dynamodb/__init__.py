@@ -53,6 +53,9 @@ def regions():
             RegionInfo(name='sa-east-1',
                        endpoint='dynamodb.sa-east-1.amazonaws.com',
                        connection_cls=boto.dynamodb.layer2.Layer2),
+            RegionInfo(name='ap-southeast-2',
+                       endpoint='dynamodb.ap-southeast-2.amazonaws.com',
+                       connection_cls=boto.dynamodb.layer2.Layer2),
             ]
 
 class AuthToken:
