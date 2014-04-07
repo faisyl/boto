@@ -53,6 +53,9 @@ def regions():
             RegionInfo(name='ap-southeast-1',
                        endpoint='sns.ap-southeast-1.amazonaws.com',
                        connection_cls=SNSConnection),
+            RegionInfo(name='ap-southeast-2',
+                       endpoint='sns.ap-southeast-2.amazonaws.com',
+                       connection_cls=SNSConnection),
             ]
 
 def connect_to_region(region_name, **kw_params):

@@ -42,7 +42,9 @@ def regions():
             SQSRegionInfo(name='ap-northeast-1',
                           endpoint='sqs.ap-northeast-1.amazonaws.com'),
             SQSRegionInfo(name='ap-southeast-1',
-                          endpoint='sqs.ap-southeast-1.amazonaws.com')
+                          endpoint='sqs.ap-southeast-1.amazonaws.com'),
+            SQSRegionInfo(name='ap-southeast-2',
+                          endpoint='sqs.ap-southeast-2.amazonaws.com')
             ]
 
 def connect_to_region(region_name, **kw_params):
